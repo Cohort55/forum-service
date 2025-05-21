@@ -80,16 +80,22 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Iterable<PostDto> findPostsByAuthor(String author) {
-        return null;
+        return postRepository.findPostsByAuthorIgnoreCase(author)
+                .map(post -> modelMapper.map(post, PostDto.class))
+                .toList();
     }
 
     @Override
     public Iterable<PostDto> findPostsByTags(List<String> tags) {
-        return null;
+        return postRepository.findPostsByTagsInIgnoreCase(tags)
+                .map(post -> modelMapper.map(post, PostDto.class))
+                .toList();
     }
 
     @Override
     public Iterable<PostDto> findPostsByPeriod(LocalDate dateFrom, LocalDate dateTo) {
-        return null;
+        return postRepository.findPostsByDateCreatedBetween(dateFrom, dateTo.plusDays(1))
+                .map(post -> modelMapper.map(post, PostDto.class))
+                .toList();
     }
 }
