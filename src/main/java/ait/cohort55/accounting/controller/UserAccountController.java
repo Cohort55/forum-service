@@ -22,10 +22,8 @@ public class UserAccountController {
         return userAccountService.register(userRegisterDto);
     }
 
-    // Don't use this endpoint in homework'
     @PostMapping("/login")
     public UserDto login(Principal principal) {
-        // FIXME - this is a hack to get the logged in user's details'
         return userAccountService.getUser(principal.getName());
     }
 
@@ -49,11 +47,9 @@ public class UserAccountController {
         return userAccountService.changeRolesList(login, role, false);
     }
 
-    // Don't use this endpoint in homework'
     @PatchMapping("/password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void changePassword(Principal principal, @RequestHeader("X-Password") String newPassword) {
-        // FIXME - this is a hack to get the logged in user's details'
         userAccountService.changePassword(principal.getName(), newPassword);
     }
 

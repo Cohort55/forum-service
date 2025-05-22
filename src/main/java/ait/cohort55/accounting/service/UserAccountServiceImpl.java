@@ -8,25 +8,28 @@ import ait.cohort55.accounting.dto.UserRegisterDto;
 import ait.cohort55.accounting.dto.exception.InvalidDataException;
 import ait.cohort55.accounting.dto.exception.UserExistsException;
 import ait.cohort55.accounting.dto.exception.UserNotFoundException;
+import ait.cohort55.accounting.model.Role;
 import ait.cohort55.accounting.model.UserAccount;
 import lombok.RequiredArgsConstructor;
-import org.mindrot.jbcrypt.BCrypt;
 import org.modelmapper.ModelMapper;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class UserAccountServiceImpl implements UserAccountService{
+public class UserAccountServiceImpl implements UserAccountService, CommandLineRunner {
     private final UserAccountRepository userAccountRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserDto register(UserRegisterDto userRegisterDto) {
-        if (userAccountRepository.existsById(userRegisterDto.getLogin())){
+        if (userAccountRepository.existsById(userRegisterDto.getLogin())) {
             throw new UserExistsException();
         }
         UserAccount userAccount = modelMapper.map(userRegisterDto, UserAccount.class);
-        String password = BCrypt.hashpw(userRegisterDto.getPassword(), BCrypt.gensalt());
+        String password = passwordEncoder.encode(userRegisterDto.getPassword());
         userAccount.setPassword(password);
         userAccountRepository.save(userAccount);
         return modelMapper.map(userAccount, UserDto.class);
@@ -72,7 +75,7 @@ public class UserAccountServiceImpl implements UserAccountService{
         } catch (Exception e) {
             throw new InvalidDataException("Bad role name: " + role);
         }
-        if(res) {
+        if (res) {
             userAccountRepository.save(userAccount);
         }
         return modelMapper.map(userAccount, RolesDto.class);
@@ -81,8 +84,18 @@ public class UserAccountServiceImpl implements UserAccountService{
     @Override
     public void changePassword(String login, String newPassword) {
         UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
-        String password = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+        String password = passwordEncoder.encode(newPassword);
         userAccount.setPassword(password);
         userAccountRepository.save(userAccount);
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        if (!userAccountRepository.existsById("admin")) {
+            UserAccount userAccount = new UserAccount("admin", passwordEncoder.encode("admin"), "", "");
+            userAccount.addRole(Role.MODERATOR.name());
+            userAccount.addRole(Role.ADMINISTRATOR.name());
+            userAccountRepository.save(userAccount);
+        }
     }
 }
