@@ -39,20 +39,38 @@ public class UserAccountServiceImpl implements UserAccountService{
 
     @Override
     public UserDto removeUser(String login) {
-        // TODO Homework
-        return null;
+        UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
+        userAccountRepository.delete(userAccount);
+        return modelMapper.map(userAccount, UserDto.class);
     }
 
     @Override
     public UserDto updateUser(String login, UserEditDto userEditDto) {
-        // TODO Homework
-        return null;
+        UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
+        if (userEditDto.getFirstName() != null) {
+            userAccount.setFirstName(userEditDto.getFirstName());
+        }
+        if (userEditDto.getLastName() != null) {
+            userAccount.setLastName(userEditDto.getLastName());
+        }
+        userAccountRepository.save(userAccount);
+        return modelMapper.map(userAccount, UserDto.class);
     }
 
     @Override
     public RolesDto changeRolesList(String login, String role, boolean isAddRole) {
-        // TODO Homework
-        return null;
+        UserAccount userAccount = userAccountRepository.findById(login).orElseThrow(UserNotFoundException::new);
+        boolean res;
+        role = role.toUpperCase();
+        if (isAddRole) {
+            res = userAccount.addRole(role);
+        } else {
+            res = userAccount.removeRole(role);
+        }
+        if(res) {
+            userAccountRepository.save(userAccount);
+        }
+        return modelMapper.map(userAccount, RolesDto.class);
     }
 
     @Override
